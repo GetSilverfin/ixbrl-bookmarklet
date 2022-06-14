@@ -3,7 +3,11 @@ let xbrlTagsNumericArray = Array.from(document.getElementsByTagName('ix:nonfract
 let xbrlTagsContinuationArray = Array.from(document.getElementsByTagName('ix:continuation'));
 let xbrlTagsArray = xbrlTagsNonNumericArray.concat(xbrlTagsNumericArray).concat(xbrlTagsContinuationArray);
 
-/* Create HTML table */
+/* Create HTML tables */
+addCSS();
+createHTMLTableHiddenElements();
+searchForHiddenTags();
+checkHiddenTags();
 createHTMLTable();
 
 /* Add event listener to log value that calls the function (has to be annonymous fx that calls the fx with parameters) */
@@ -130,7 +134,7 @@ function getSchemeAndIdentifier(obj){
 /* Create CSS rules */
 function addCSS() {
     let style = `
-    div#xbrl-hover-table { 
+    div.xbrl-table { 
         background-color: white; 
         border-radius: 15px; 
         padding: 10px; 
@@ -139,7 +143,7 @@ function addCSS() {
         width: 400px; 
         box-shadow: 0 10px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) ;
     }
-    div#xbrl-hover-table th.xbrl-hover-title { 
+    div.xbrl-table th.xbrl-hover-title { 
         font-size: 15px; 
         color: #20516A; 
         background-color: white; 
@@ -147,7 +151,7 @@ function addCSS() {
         word-break: break-word; 
         border-bottom: 1px solid #F2F2F2; 
     }
-    div#xbrl-hover-table td.xbrl-hover-content { 
+    div.xbrl-table td.xbrl-hover-content { 
         font-size: 12px !important; 
         color: black !important; 
         background-color: white !important; 
@@ -169,11 +173,10 @@ function addCSS() {
 
 /* Create table (HTML and CSS) */
 function createHTMLTable() {
-    addCSS();
     var divXbrlTable = document.createElement("div");
 
     divXbrlTable.innerHTML = `
-        <div class="xbrl-hover-table" id="xbrl-hover-table">
+        <div class="xbrl-table" id="xbrl-hover-table">
             <table style="width: 100%; margin-bottom: 0px">
                 <tbody>
                     <tr>
@@ -342,4 +345,77 @@ function hideTable() {
     var divXBRL = document.getElementById('xbrl-hover-table');
     divXBRL.classList.add('hide-table');
     divXBRL.classList.remove('show-table');
+};
+
+
+/* Search for Hidden Tags */
+function searchForHiddenTags() {
+    const hiddenTags = document.getElementsByTagName('IX:HIDDEN')[0].children;
+    for ( tag of hiddenTags ) {
+        createRowHiddenElements(tagName(tag), tag.innerHTML, getPeriods(tag));
+        var hiddenDimensions = checkDimensions(tag);
+        if (hiddenDimensions.length) {
+            for ( dimension of hiddenDimensions ) {
+                createRowHiddenElements(`Dimension: ${dimension.dimensionName}`, dimension.dimensionContent, getPeriods(tag), true);
+            };
+        };
+    };
+};
+
+function checkHiddenTags() {
+    var hiddenRows = document.getElementById('hidden-tags-tbody').children;
+    var hiddenTable = document.getElementById('xbrl-hidden-table');
+    if (!hiddenRows.length){
+        hiddenTable.classList.add('hide-table')
+    };
+};
+
+function createHTMLTableHiddenElements() {
+    var divHiddenElementsTable = document.createElement("div");
+    divHiddenElementsTable.innerHTML = `
+        <div class="xbrl-table" id="xbrl-hidden-table" style="width: 210mm; margin: 10mm auto;">
+            <table style="width: 100%; margin: 20px; padding-right: 40px;">
+                <thead>
+                    <tr>
+                        <th class="xbrl-hover-title" style="text-align: center;" colspan="3">
+                            XBRL - Hidden elements
+                        </th>
+                    </tr>
+                    <tr>
+                        <th class="xbrl-hover-title" style="width: 40%; text-align: center;">
+                            Element name
+                        </th>
+                        <th class="xbrl-hover-title" style="width: 40%; text-align: center;">
+                            Content
+                        </th>
+                        <th class="xbrl-hover-title" style="width: 20%; text-align: center;">
+                            Period
+                        </th>
+                    </tr>
+                </head>
+                <tbody id="hidden-tags-tbody">
+                </tbody>
+            </table>`;
+    document.body.appendChild(divHiddenElementsTable);
+};
+
+function createRowHiddenElements(name, content, period, isDimension = false) {
+    var tbodyElement = document.getElementById('hidden-tags-tbody');
+    var trHiddenElement = document.createElement("tr");
+    trHiddenElement.innerHTML = `
+    <td class="xbrl-hover-content" style="width: 40%; padding: 3px;">
+        ${name}
+    </td>
+    <td class="xbrl-hover-content" style="width: 40%; padding: 3px;">
+        ${content}
+    </td>
+    <td class="xbrl-hover-content" style="width: 20%; padding: 3px;">
+        ${period}
+    </td>`;
+    if (isDimension) {
+        var tds = trHiddenElement.getElementsByTagName('td');
+        tds[0].style.textIndent = "15px";
+        tds[0].style.fontStyle = "italic";
+    };
+    tbodyElement.appendChild(trHiddenElement);
 };
