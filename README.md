@@ -14,8 +14,8 @@ Note that only element that are visible in the iXBRL file will be displayed, sin
 
 ## How to contribute ?
 
-Do you want to make your own changes to the bookmarklet? That's great! The entire logic to make this bookmarklet work is stored in the file named `iXBRL-bookmarklet-code.js`. You can work on that one and make all the changes you need.
-Then, you can run the `node createBookmarklet.js` to convert the previous file into a one-line JavaScript code, that can be easily copy-pasted into a bookmark (running `node createBookmarklet.js` will overwrite your existing `iXBRL-bookmarklet-one-line.js` file).
+Do you want to make your own changes to the bookmarklet? That's great! The entire logic to make this bookmarklet work is stored in the file named `iXBRL-bookmarklet-code.js` in `src` folder. You can work on that one and make all the changes you need.
+Then, you can run the `node createBookmarklet.js` to convert the previous file into a one-line JavaScript code, that can be easily copy-pasted into a bookmark. This will create a new `iXBRL-bookmarklet-one-line.js` file inside your src folder.
 Don't forget to submit your updates or fixes vía a Pull Request.
 
 ## Disclaimer
