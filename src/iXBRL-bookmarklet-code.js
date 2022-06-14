@@ -174,44 +174,17 @@ function addCSS() {
 /* Create table (HTML and CSS) */
 function createHTMLTable() {
     var divXbrlTable = document.createElement("div");
-
     divXbrlTable.innerHTML = `
         <div class="xbrl-table" id="xbrl-hover-table">
             <table style="width: 100%; margin-bottom: 0px">
                 <tbody>
-                    <tr>
+                    <tr class="xbrl-element-row">
                         <th class="xbrl-hover-title" id="xbrl-name-title">
                             Element name
                         </th>
                     </tr>
-                    <tr>
+                    <tr class="xbrl-element-row">
                         <td class="xbrl-hover-content" id="xbrl-name-content">  
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="xbrl-hover-title" id="xbrl-dimension-title-1">
-                            Dimension
-                        </th>
-                    </tr>
-                    <tr>
-                        <td class="xbrl-hover-content" id="xbrl-dimension-name-1">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="xbrl-hover-content" id="xbrl-dimension-content-1">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="xbrl-hover-title" id="xbrl-dimension-title-2">
-                            Dimension
-                        </th>
-                    </tr>
-                    <tr>
-                        <td class="xbrl-hover-content" id="xbrl-dimension-name-2">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="xbrl-hover-content" id="xbrl-dimension-content-2">
                         </td>
                     </tr>
                     <tr>
@@ -244,6 +217,41 @@ function createHTMLTable() {
     hideTable();
 };
 
+function findLastElementRow() {
+    let tableElements = document.querySelectorAll(".xbrl-element-row");
+    return tableElements[tableElements.length-1];
+};
+
+function removeDimensions() {
+    let tableDimensions = document.querySelectorAll(".xbrl-dimension-row");
+    for ( tr of tableDimensions ) {
+        tr.parentElement.removeChild(tr);
+    };
+};
+
+function createDimensionRows(objDimension) {
+    for ( obj of objDimension ) {
+        let htmlContent = `
+        <tr class="xbrl-dimension-row">
+            <th class="xbrl-hover-title">
+                Dimension
+            </th>
+        </tr>
+        <tr class="xbrl-dimension-row">
+            <td class="xbrl-hover-content">
+                <b>Name:</b> ${obj.dimensionName}
+            </td>
+        </tr>
+        <tr class="xbrl-dimension-row">
+            <td class="xbrl-hover-content">
+                <b>Content:</b> ${obj.dimensionContent}
+            </td>
+        </tr>`;
+        let previousEl = findLastElementRow();
+        previousEl.insertAdjacentHTML("afterend", htmlContent);
+    };
+};
+
 /* FILL TABLE */
 function fillTableContent(obj) {
     var xbrlTagField = document.getElementById('xbrl-name-content');
@@ -254,40 +262,11 @@ function fillTableContent(obj) {
     var identifierField = document.getElementById('xbrl-identifier-content');
     schemeField.innerHTML = "<b>Scheme: </b>"+getSchemeAndIdentifier(obj).scheme;
     identifierField.innerHTML = "<b>Identifier: </b>"+getSchemeAndIdentifier(obj).identifier;
+    /* Remove previous Dimensions and add new ones */
+    removeDimensions();
     var objDimension = checkDimensions(obj);
-    /* dimension 1 */
-    var dimensionTitleField = document.getElementById('xbrl-dimension-title-1');
-    var dimensionNameField = document.getElementById('xbrl-dimension-name-1');
-    var dimensionContentField = document.getElementById('xbrl-dimension-content-1');
-    if (objDimension[0]) {
-        /* show section */
-        dimensionTitleField.parentElement.style.display = 'block';
-        dimensionNameField.parentElement.style.display = 'block';
-        dimensionContentField.parentElement.style.display = 'block';
-        dimensionNameField.innerHTML = "<b>Name: </b>"+objDimension[0].dimensionName;
-        dimensionContentField.innerHTML = "<b>Content: </b>"+objDimension[0].dimensionContent;
-    } else {
-        /* hide section */
-        dimensionTitleField.parentElement.style.display = 'none';
-        dimensionNameField.parentElement.style.display = 'none';
-        dimensionContentField.parentElement.style.display = 'none';
-    };
-    /* dimension 2 */
-    var dimensionTitleField = document.getElementById('xbrl-dimension-title-2');
-    var dimensionNameField = document.getElementById('xbrl-dimension-name-2');
-    var dimensionContentField = document.getElementById('xbrl-dimension-content-2');
-    if (objDimension[1]) {
-        /* show section */
-        dimensionTitleField.parentElement.style.display = 'block';
-        dimensionNameField.parentElement.style.display = 'block';
-        dimensionContentField.parentElement.style.display = 'block';
-        dimensionNameField.innerHTML = "<b>Name: </b>"+objDimension[1].dimensionName;
-        dimensionContentField.innerHTML = "<b>Member: </b>"+objDimension[1].dimensionContent;
-    } else {
-        /* hide section */
-        dimensionTitleField.parentElement.style.display = 'none';
-        dimensionNameField.parentElement.style.display = 'none';
-        dimensionContentField.parentElement.style.display = 'none';
+    if (objDimension.length) {
+        createDimensionRows(objDimension);
     };
 };
 
@@ -350,22 +329,24 @@ function hideTable() {
 
 /* Search for Hidden Tags */
 function searchForHiddenTags() {
-    const hiddenTags = document.getElementsByTagName('IX:HIDDEN')[0].children;
-    for ( tag of hiddenTags ) {
-        createRowHiddenElements(tagName(tag), tag.innerHTML, getPeriods(tag));
-        var hiddenDimensions = checkDimensions(tag);
-        if (hiddenDimensions.length) {
-            for ( dimension of hiddenDimensions ) {
-                createRowHiddenElements(`Dimension: ${dimension.dimensionName}`, dimension.dimensionContent, getPeriods(tag), true);
+    const hiddenTags = document.getElementsByTagName('IX:HIDDEN')[0];
+    if ( hiddenTags !== undefined ) {
+        for ( tag of hiddenTags.children ) {
+            createRowHiddenElements(tagName(tag), tag.innerHTML, getPeriods(tag));
+            var hiddenDimensions = checkDimensions(tag);
+            if (hiddenDimensions.length) {
+                for ( dimension of hiddenDimensions ) {
+                    createRowHiddenElements(`Dimension: ${dimension.dimensionName}`, dimension.dimensionContent, getPeriods(tag), true);
+                };
             };
         };
     };
 };
 
 function checkHiddenTags() {
-    var hiddenRows = document.getElementById('hidden-tags-tbody').children;
-    var hiddenTable = document.getElementById('xbrl-hidden-table');
-    if (!hiddenRows.length){
+    let hiddenRows = document.getElementById('hidden-tags-tbody');
+    let hiddenTable = document.getElementById('xbrl-hidden-table');
+    if (hiddenRows.childElementCount == 0){
         hiddenTable.classList.add('hide-table')
     };
 };
@@ -416,6 +397,7 @@ function createRowHiddenElements(name, content, period, isDimension = false) {
         var tds = trHiddenElement.getElementsByTagName('td');
         tds[0].style.textIndent = "15px";
         tds[0].style.fontStyle = "italic";
+        tds[1].style.fontStyle = "italic";
     };
     tbodyElement.appendChild(trHiddenElement);
 };
